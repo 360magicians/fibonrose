@@ -446,7 +446,7 @@ export default function HomePage() {
 
             <Card className="bg-gradient-to-b from-red-500/20 to-red-600/20 border-red-500/30">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-red-400 mb-2">🔴 Under 60</div>
+                <div className="text-2xl font-bold text-red-400 mb-2">🔴 Below 60</div>
                 <div className="text-white font-semibold">Unverified</div>
                 <div className="text-red-300 text-sm">Not recommended for services</div>
               </CardContent>
