@@ -37,11 +37,7 @@ export default function HomePage() {
     try {
       const { data, error } = await supabase
         .from("users")
-        .select(`
-          *,
-          interpreter_profiles(*),
-          trust_scores(*)
-        `)
+        .select("*, interpreter_profiles(*), trust_scores(*)")
         .eq("user_type", "interpreter")
         .eq("is_active", true)
         .neq("trust_scores.trust_level", "unverified")
@@ -103,11 +99,7 @@ export default function HomePage() {
       setLoading(true)
       let query = supabase
         .from("users")
-        .select(`
-          *,
-          interpreter_profiles(*),
-          trust_scores(*)
-        `)
+        .select("*, interpreter_profiles(*), trust_scores(*)")
         .eq("user_type", "interpreter")
         .eq("is_active", true)
         .neq("trust_scores.trust_level", "unverified")
