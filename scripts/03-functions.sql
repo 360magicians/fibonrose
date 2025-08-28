@@ -100,7 +100,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Function to get available interpreters by service type and location
+-- Function to get available PROS by service type and location
 CREATE OR REPLACE FUNCTION get_available_interpreters(
     service_type_param service_type,
     location_param TEXT DEFAULT NULL,

@@ -3,22 +3,26 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Shield, User, Users, Building } from "lucide-react"
-import { supabase } from "@/lib/supabase"
+import { Shield, User, Users, Building, AlertCircle, CheckCircle } from "lucide-react"
+import { useAuth } from "@/hooks/useAuth"
 import Link from "next/link"
 
 export default function AuthPage() {
+  const router = useRouter()
   const searchParams = useSearchParams()
+  const { signIn, signUp, resetPassword, loading } = useAuth()
+
   const [mode, setMode] = useState(searchParams.get("mode") || "signin")
   const [userType, setUserType] = useState(searchParams.get("type") || "interpreter")
-  const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
+  const [messageType, setMessageType] = useState<"success" | "error">("error")
+  const [showResetForm, setShowResetForm] = useState(false)
 
   const [formData, setFormData] = useState({
     email: "",
@@ -30,66 +34,61 @@ export default function AuthPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setMessage("")
 
     try {
-      // Sign up with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-            user_type: userType,
-          },
-        },
+      await signUp(formData.email, formData.password, {
+        full_name: formData.fullName,
+        user_type: userType,
+        phone: formData.phone,
+        video_phone: formData.videoPhone,
       })
 
-      if (authError) throw authError
-
-      if (authData.user) {
-        // Create user profile
-        const { error: profileError } = await supabase.from("users").insert({
-          id: authData.user.id,
-          email: formData.email,
-          full_name: formData.fullName,
-          user_type: userType,
-          phone: formData.phone,
-          video_phone: formData.videoPhone,
-        })
-
-        if (profileError) throw profileError
-
-        setMessage("Account created successfully! Please check your email to verify your account.")
-      }
+      setMessage("Account created successfully! Please check your email to verify your account.")
+      setMessageType("success")
     } catch (error: any) {
       setMessage(error.message)
-    } finally {
-      setLoading(false)
+      setMessageType("error")
     }
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setMessage("")
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      })
-
-      if (error) throw error
-
+      await signIn(formData.email, formData.password)
       setMessage("Signed in successfully!")
-      // Redirect to dashboard
-      window.location.href = "/dashboard"
+      setMessageType("success")
+
+      // Redirect to dashboard after successful login
+      setTimeout(() => {
+        router.push("/dashboard")
+      }, 1000)
     } catch (error: any) {
       setMessage(error.message)
-    } finally {
-      setLoading(false)
+      setMessageType("error")
+    }
+  }
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMessage("")
+
+    if (!formData.email) {
+      setMessage("Please enter your email address")
+      setMessageType("error")
+      return
+    }
+
+    try {
+      await resetPassword(formData.email)
+      setMessage("Password reset email sent! Check your inbox.")
+      setMessageType("success")
+      setShowResetForm(false)
+    } catch (error: any) {
+      setMessage(error.message)
+      setMessageType("error")
     }
   }
 
@@ -104,6 +103,97 @@ export default function AuthPage() {
       default:
         return <User className="w-5 h-5" />
     }
+  }
+
+  const getUserTypeLabel = (type: string) => {
+    switch (type) {
+      case "interpreter":
+        return "ASL PRO"
+      case "deaf_professional":
+        return "Deaf Professional"
+      case "service_provider":
+        return "Service Provider"
+      default:
+        return "User"
+    }
+  }
+
+  if (showResetForm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <Link href="/" className="inline-flex items-center space-x-3 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                <Shield className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <span className="text-2xl font-bold text-white">Fibonrose</span>
+                <div className="text-sm text-blue-300">Trust Verification System</div>
+              </div>
+            </Link>
+          </div>
+
+          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-white text-center">Reset Password</CardTitle>
+              <CardDescription className="text-gray-400 text-center">
+                Enter your email to receive a password reset link
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-gray-300">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+                    placeholder="Enter your email"
+                  />
+                </div>
+
+                {message && (
+                  <div
+                    className={`text-sm p-3 rounded flex items-center space-x-2 ${
+                      messageType === "success"
+                        ? "bg-green-500/20 text-green-300 border border-green-500/30"
+                        : "bg-red-500/20 text-red-300 border border-red-500/30"
+                    }`}
+                  >
+                    {messageType === "success" ? (
+                      <CheckCircle className="w-4 h-4" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4" />
+                    )}
+                    <span>{message}</span>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+                >
+                  {loading ? "Sending..." : "Send Reset Email"}
+                </Button>
+              </form>
+
+              <div className="mt-6 text-center">
+                <button onClick={() => setShowResetForm(false)} className="text-blue-400 hover:text-blue-300 text-sm">
+                  Back to Sign In
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -126,7 +216,7 @@ export default function AuthPage() {
           <CardHeader>
             <CardTitle className="text-white text-center">{mode === "signin" ? "Sign In" : "Create Account"}</CardTitle>
             <CardDescription className="text-gray-400 text-center">
-              {mode === "signin" ? "Access your verification dashboard" : "Join the trusted interpreter network"}
+              {mode === "signin" ? "Access your verification dashboard" : "Join the trusted PRO network"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -145,7 +235,7 @@ export default function AuthPage() {
                         <SelectItem value="interpreter">
                           <div className="flex items-center space-x-2">
                             <User className="w-4 h-4" />
-                            <span>ASL Interpreter</span>
+                            <span>ASL PRO</span>
                           </div>
                         </SelectItem>
                         <SelectItem value="deaf_professional">
@@ -245,13 +335,18 @@ export default function AuthPage() {
 
               {message && (
                 <div
-                  className={`text-sm p-3 rounded ${
-                    message.includes("successfully")
+                  className={`text-sm p-3 rounded flex items-center space-x-2 ${
+                    messageType === "success"
                       ? "bg-green-500/20 text-green-300 border border-green-500/30"
                       : "bg-red-500/20 text-red-300 border border-red-500/30"
                   }`}
                 >
-                  {message}
+                  {messageType === "success" ? (
+                    <CheckCircle className="w-4 h-4" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4" />
+                  )}
+                  <span>{message}</span>
                 </div>
               )}
 
@@ -264,13 +359,23 @@ export default function AuthPage() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <button
-                onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-                className="text-blue-400 hover:text-blue-300 text-sm"
-              >
-                {mode === "signin" ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-              </button>
+            <div className="mt-6 space-y-4">
+              {mode === "signin" && (
+                <div className="text-center">
+                  <button onClick={() => setShowResetForm(true)} className="text-blue-400 hover:text-blue-300 text-sm">
+                    Forgot your password?
+                  </button>
+                </div>
+              )}
+
+              <div className="text-center">
+                <button
+                  onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+                  className="text-blue-400 hover:text-blue-300 text-sm"
+                >
+                  {mode === "signin" ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                </button>
+              </div>
             </div>
           </CardContent>
         </Card>

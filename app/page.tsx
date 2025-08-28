@@ -17,7 +17,7 @@ interface InterpreterWithProfile extends User {
 }
 
 export default function HomePage() {
-  const [interpreters, setInterpreters] = useState<InterpreterWithProfile[]>([])
+  const [pros, setPros] = useState<InterpreterWithProfile[]>([])
   const [loading, setLoading] = useState(true)
   const [searchLocation, setSearchLocation] = useState("")
   const [serviceType, setServiceType] = useState("")
@@ -29,11 +29,11 @@ export default function HomePage() {
   })
 
   useEffect(() => {
-    fetchInterpreters()
+    fetchPros()
     fetchStats()
   }, [])
 
-  const fetchInterpreters = async () => {
+  const fetchPros = async () => {
     try {
       const { data, error } = await supabase
         .from("users")
@@ -48,9 +48,9 @@ export default function HomePage() {
         .limit(6)
 
       if (error) throw error
-      setInterpreters(data || [])
+      setPros(data || [])
     } catch (error) {
-      console.error("Error fetching interpreters:", error)
+      console.error("Error fetching PROS:", error)
     } finally {
       setLoading(false)
     }
@@ -58,13 +58,13 @@ export default function HomePage() {
 
   const fetchStats = async () => {
     try {
-      // Get total interpreters
+      // Get total PROS
       const { count: totalCount } = await supabase
         .from("users")
         .select("*", { count: "exact", head: true })
         .eq("user_type", "interpreter")
 
-      // Get verified interpreters
+      // Get verified PROS
       const { count: verifiedCount } = await supabase
         .from("trust_scores")
         .select("*", { count: "exact", head: true })
@@ -83,7 +83,7 @@ export default function HomePage() {
         .select("*", { count: "exact", head: true })
 
       setStats({
-        totalInterpreters: totalCount || 0,
+        totalInterpreters: totalCount || 0, // Keep the property name for now
         verifiedInterpreters: verifiedCount || 0,
         averageRating: Math.round(avgRating * 10) / 10,
         totalServices: servicesCount || 0,
@@ -93,9 +93,9 @@ export default function HomePage() {
     }
   }
 
-  const searchInterpreters = async () => {
+  const searchPros = async () => {
     if (!searchLocation && !serviceType) {
-      fetchInterpreters()
+      fetchPros()
       return
     }
 
@@ -119,9 +119,9 @@ export default function HomePage() {
       const { data, error } = await query.limit(6)
 
       if (error) throw error
-      setInterpreters(data || [])
+      setPros(data || [])
     } catch (error) {
-      console.error("Error searching interpreters:", error)
+      console.error("Error searching PROS:", error)
     } finally {
       setLoading(false)
     }
@@ -176,8 +176,8 @@ export default function HomePage() {
               <Link href="#verification" className="text-gray-300 hover:text-white transition-colors">
                 Verification
               </Link>
-              <Link href="#interpreters" className="text-gray-300 hover:text-white transition-colors">
-                Find Interpreters
+              <Link href="#pros" className="text-gray-300 hover:text-white transition-colors">
+                Find PROS
               </Link>
               <Link href="#services" className="text-gray-300 hover:text-white transition-colors">
                 Services
@@ -219,7 +219,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 max-w-2xl mx-auto">
             <div className="bg-white/5 rounded-lg p-4 backdrop-blur-sm">
               <div className="text-2xl font-bold text-blue-400">{stats.totalInterpreters}</div>
-              <div className="text-sm text-gray-400">Total Interpreters</div>
+              <div className="text-sm text-gray-400">Total PROS</div>
             </div>
             <div className="bg-white/5 rounded-lg p-4 backdrop-blur-sm">
               <div className="text-2xl font-bold text-green-400">{stats.verifiedInterpreters}</div>
@@ -249,20 +249,20 @@ export default function HomePage() {
               size="lg"
               variant="outline"
               className="border-gray-600 text-gray-300 hover:bg-gray-800 bg-transparent"
-              onClick={() => document.getElementById("interpreters")?.scrollIntoView({ behavior: "smooth" })}
+              onClick={() => document.getElementById("pros")?.scrollIntoView({ behavior: "smooth" })}
             >
-              Find Verified Interpreters
+              Find Verified PROS
             </Button>
           </div>
         </div>
       </section>
 
       {/* Interpreter Search */}
-      <section id="interpreters" className="py-16 px-4 sm:px-6 lg:px-8 bg-white/5">
+      <section id="pros" className="py-16 px-4 sm:px-6 lg:px-8 bg-white/5">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Find Verified Interpreters</h2>
-            <p className="text-gray-400 text-lg">Search our network of trusted, verified ASL interpreters</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Find Verified PROS</h2>
+            <p className="text-gray-400 text-lg">Search our network of trusted, verified ASL professionals</p>
           </div>
 
           {/* Search Form */}
@@ -297,7 +297,7 @@ export default function HomePage() {
                     </Select>
                   </div>
                   <div className="flex items-end">
-                    <Button onClick={searchInterpreters} className="w-full bg-blue-500 hover:bg-blue-600">
+                    <Button onClick={searchPros} className="w-full bg-blue-500 hover:bg-blue-600">
                       <Search className="w-4 h-4 mr-2" />
                       Search
                     </Button>
@@ -309,22 +309,22 @@ export default function HomePage() {
 
           {/* Interpreter Results */}
           {loading ? (
-            <div className="text-center text-gray-400">Loading interpreters...</div>
+            <div className="text-center text-gray-400">Loading PROS...</div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {interpreters.map((interpreter) => {
-                const profile = interpreter.interpreter_profiles?.[0]
-                const trustScore = interpreter.trust_scores?.[0]
+              {pros.map((pro) => {
+                const profile = pro.interpreter_profiles?.[0]
+                const trustScore = pro.trust_scores?.[0]
 
                 return (
                   <Card
-                    key={interpreter.id}
+                    key={pro.id}
                     className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors"
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
-                          <CardTitle className="text-white text-lg">{interpreter.full_name}</CardTitle>
+                          <CardTitle className="text-white text-lg">{pro.full_name}</CardTitle>
                           <CardDescription className="text-gray-400">
                             {profile?.asl_proficiency} ASL • {profile?.years_experience} years
                           </CardDescription>
@@ -384,14 +384,14 @@ export default function HomePage() {
             </div>
           )}
 
-          {!loading && interpreters.length === 0 && (
+          {!loading && pros.length === 0 && (
             <div className="text-center py-12">
-              <div className="text-gray-400 mb-4">No interpreters found matching your criteria</div>
+              <div className="text-gray-400 mb-4">No PROS found matching your criteria</div>
               <Button
                 onClick={() => {
                   setSearchLocation("")
                   setServiceType("")
-                  fetchInterpreters()
+                  fetchPros()
                 }}
                 variant="outline"
                 className="border-gray-600 text-gray-300 hover:bg-gray-800 bg-transparent"
@@ -460,22 +460,22 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">DEAF FIRST Platform Services</h2>
-            <p className="text-gray-400 text-lg">Verified interpreters for essential life services</p>
+            <p className="text-gray-400 text-lg">Verified PROS for essential life services</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: "Real Estate", desc: "Property buying, selling, management", count: "150+ interpreters" },
-              { title: "Tax Preparation", desc: "Individual and business tax services", count: "120+ interpreters" },
+              { title: "Real Estate", desc: "Property buying, selling, management", count: "150+ PROS" },
+              { title: "Tax Preparation", desc: "Individual and business tax services", count: "120+ PROS" },
               {
                 title: "Insurance Services",
                 desc: "Policy acquisition, claims, consultations",
-                count: "95+ interpreters",
+                count: "95+ PROS",
               },
               {
                 title: "Financial Planning",
                 desc: "Investment advice, banking, wealth management",
-                count: "80+ interpreters",
+                count: "80+ PROS",
               },
             ].map((service, index) => (
               <Card
@@ -526,10 +526,10 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-2 gap-6 mb-12">
             <div>
-              <h3 className="text-xl font-bold text-white mb-4">For Interpreters</h3>
+              <h3 className="text-xl font-bold text-white mb-4">For PROS</h3>
               <p className="text-gray-400 mb-4">Get verified and build trust in the deaf community</p>
               <Link href="/auth?mode=signup&type=interpreter">
-                <Button className="bg-blue-500 hover:bg-blue-600 w-full">Start Interpreter Verification</Button>
+                <Button className="bg-blue-500 hover:bg-blue-600 w-full">Start PRO Verification</Button>
               </Link>
             </div>
             <div>

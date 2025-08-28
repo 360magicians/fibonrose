@@ -1,7 +1,7 @@
 import { supabase } from "./supabase"
 import type { User, InterpreterProfile, CommunityFeedback } from "./supabase"
 
-// User management functions
+// PRO management functions
 export async function createUser(userData: Partial<User>) {
   const { data, error } = await supabase.from("users").insert(userData).select().single()
 
@@ -25,8 +25,8 @@ export async function getUserProfile(userId: string) {
   return data
 }
 
-// Interpreter functions
-export async function getVerifiedInterpreters(serviceType?: string, location?: string) {
+// PRO functions
+export async function getVerifiedPros(serviceType?: string, location?: string) {
   let query = supabase
     .from("users")
     .select(`
@@ -48,7 +48,7 @@ export async function getVerifiedInterpreters(serviceType?: string, location?: s
   return data
 }
 
-export async function createInterpreterProfile(profileData: Partial<InterpreterProfile>) {
+export async function createProProfile(profileData: Partial<InterpreterProfile>) {
   const { data, error } = await supabase.from("interpreter_profiles").insert(profileData).select().single()
 
   if (error) throw error

@@ -1,3 +1,5 @@
+// This file should be renamed to app/api/pros/route.ts
+
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
@@ -17,7 +19,7 @@ export async function GET(request: NextRequest) {
     })
 
     if (error) {
-      console.error("Interpreter search error:", error)
+      console.error("PRO search error:", error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
