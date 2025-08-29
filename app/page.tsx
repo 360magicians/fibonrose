@@ -54,32 +54,28 @@ export default function HomePage() {
 
   const fetchStats = async () => {
     try {
-      // Get total PROS
       const { count: totalCount } = await supabase
         .from("users")
         .select("*", { count: "exact", head: true })
         .eq("user_type", "interpreter")
 
-      // Get verified PROS
       const { count: verifiedCount } = await supabase
         .from("trust_scores")
         .select("*", { count: "exact", head: true })
         .neq("trust_level", "unverified")
 
-      // Get average rating
       const { data: feedbackData } = await supabase.from("community_feedback").select("rating").eq("is_verified", true)
 
       const avgRating = feedbackData?.length
         ? feedbackData.reduce((sum, f) => sum + f.rating, 0) / feedbackData.length
         : 0
 
-      // Get total services
       const { count: servicesCount } = await supabase
         .from("service_bookings")
         .select("*", { count: "exact", head: true })
 
       setStats({
-        totalInterpreters: totalCount || 0, // Keep the property name for now
+        totalInterpreters: totalCount || 0,
         verifiedInterpreters: verifiedCount || 0,
         averageRating: Math.round(avgRating * 10) / 10,
         totalServices: servicesCount || 0,
@@ -151,7 +147,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      {/* Navigation */}
       <nav className="border-b border-white/10 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
@@ -190,7 +185,6 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <Badge variant="secondary" className="mb-4 bg-blue-500/20 text-blue-300 border-blue-500/30">
@@ -207,7 +201,6 @@ export default function HomePage() {
             ensuring quality interpretation services.
           </p>
 
-          {/* Live Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 max-w-2xl mx-auto">
             <div className="bg-white/5 rounded-lg p-4 backdrop-blur-sm">
               <div className="text-2xl font-bold text-blue-400">{stats.totalInterpreters}</div>
@@ -249,7 +242,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Interpreter Search */}
       <section id="pros" className="py-16 px-4 sm:px-6 lg:px-8 bg-white/5">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -257,7 +249,6 @@ export default function HomePage() {
             <p className="text-gray-400 text-lg">Search our network of trusted, verified ASL professionals</p>
           </div>
 
-          {/* Search Form */}
           <div className="max-w-4xl mx-auto mb-12">
             <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
               <CardContent className="p-6">
@@ -299,7 +290,6 @@ export default function HomePage() {
             </Card>
           </div>
 
-          {/* Interpreter Results */}
           {loading ? (
             <div className="text-center text-gray-400">Loading PROS...</div>
           ) : (
@@ -395,7 +385,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trust Scoring System */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -447,7 +436,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Services Coverage */}
       <section id="services" className="py-20 px-4 sm:px-6 lg:px-8 bg-white/5">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -485,7 +473,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Contact Section */}
       <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-8">Get Started with Verification</h2>
@@ -542,7 +529,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-white/10 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
